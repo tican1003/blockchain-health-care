@@ -1,0 +1,406 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '3.7'
+
+volumes:
+  orderer1:
+  peer0.hospital:
+  peer1.hospital:
+  peer0.patient:
+  peer1.patient:
+  peer0.pharmacy:
+  peer1.pharmacy:
+  peer0.insurance:
+  peer1.insurance:
+
+networks:
+  test:
+    name: HCNetwork
+
+services:
+  orderer1:
+    container_name: orderer1
+    image: hyperledger/fabric-orderer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=1100
+      - ORDERER_GENERAL_LOCALMSPID=Orderer1MSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:1101
+      - ORDERER_OPERATIONS_LISTENADDRESS=orderer1:9443
+      - ORDERER_METRICS_PROVIDER=prometheus
+
+    working_dir: /root
+    command: orderer
+    volumes:
+      - ../organizations/ordererOrganizations/itblanket.org/orderer1/msp:/var/hyperledger/orderer/msp
+      - ../organizations/ordererOrganizations/itblanket.org/orderer1/tls/:/var/hyperledger/orderer/tls
+      - orderer1:/var/hyperledger/production/orderer
+    ports:
+      - 1100:1100
+      - 1101:1101
+      - 9443:9443
+    networks:
+      - test
+
+  peer0.hospital:
+    container_name: peer0.hospital
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer0.hospital
+      - CORE_PEER_ADDRESS=peer0.hospital:4444
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:4444
+      - CORE_PEER_CHAINCODEADDRESS=peer0.hospital:4445
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:4445
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.hospital:4444
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.hospital:4444
+      - CORE_PEER_LOCALMSPID=HospitalMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.hospital:9444
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer0hospital
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/hospital/peers/peer0.hospital:/etc/hyperledger/fabric
+      - peer0.hospital:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 4444:4444
+      - 9444:9444
+    networks:
+      - test
+
+  peer1.hospital:
+    container_name: peer1.hospital
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer1.hospital
+      - CORE_PEER_ADDRESS=peer1.hospital:4454
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:4454
+      - CORE_PEER_CHAINCODEADDRESS=peer1.hospital:4455
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:4455
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.hospital:4454
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.hospital:4454
+      - CORE_PEER_LOCALMSPID=HospitalMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.hospital:9445
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer1hospital
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/hospital/peers/peer1.hospital:/etc/hyperledger/fabric
+      - peer1.hospital:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 4454:4454
+      - 9445:9445
+    networks:
+      - test
+
+  peer0.patient:
+    container_name: peer0.patient
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer0.patient
+      - CORE_PEER_ADDRESS=peer0.patient:5555
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:5555
+      - CORE_PEER_CHAINCODEADDRESS=peer0.patient:5556
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:5556
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.patient:5555
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.patient:5555
+      - CORE_PEER_LOCALMSPID=PatientMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.patient:9446
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer0patient
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/patient/peers/peer0.patient:/etc/hyperledger/fabric
+      - peer0.patient:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 5555:5555
+      - 9446:9446
+    networks:
+      - test
+
+  peer1.patient:
+    container_name: peer1.patient
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer1.patient
+      - CORE_PEER_ADDRESS=peer1.patient:5565
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:5565
+      - CORE_PEER_CHAINCODEADDRESS=peer1.patient:5566
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:5566
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.patient:5565
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.patient:5565
+      - CORE_PEER_LOCALMSPID=PatientMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.patient:9447
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer1patient
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/patient/peers/peer1.patient:/etc/hyperledger/fabric
+      - peer1.patient:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 5565:5565
+      - 9447:9447
+    networks:
+      - test
+
+  peer0.pharmacy:
+    container_name: peer0.pharmacy
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer0.pharmacy
+      - CORE_PEER_ADDRESS=peer0.pharmacy:6666
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:6666
+      - CORE_PEER_CHAINCODEADDRESS=peer0.pharmacy:6667
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:6667
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.pharmacy:6666
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.pharmacy:6666
+      - CORE_PEER_LOCALMSPID=PharmacyMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.pharmacy:9448
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer0pharmacy
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/pharmacy/peers/peer0.pharmacy:/etc/hyperledger/fabric
+      - peer0.pharmacy:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 6666:6666
+      - 9448:9448
+    networks:
+      - test
+
+  peer1.pharmacy:
+    container_name: peer1.pharmacy
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer1.pharmacy
+      - CORE_PEER_ADDRESS=peer1.pharmacy:6676
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:6676
+      - CORE_PEER_CHAINCODEADDRESS=peer1.pharmacy:6677
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:6677
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.pharmacy:6676
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.pharmacy:6676
+      - CORE_PEER_LOCALMSPID=PharmacyMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.pharmacy:9449
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer1pharmacy
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/pharmacy/peers/peer1.pharmacy:/etc/hyperledger/fabric
+      - peer1.pharmacy:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 6676:6676
+      - 9449:9449
+    networks:
+      - test
+
+  peer0.insurance:
+    container_name: peer0.insurance
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer0.insurance
+      - CORE_PEER_ADDRESS=peer0.insurance:7777
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7777
+      - CORE_PEER_CHAINCODEADDRESS=peer0.insurance:7778
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7778
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.insurance:7777
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.insurance:7777
+      - CORE_PEER_LOCALMSPID=InsuranceMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.insurance:9450
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer0insurance
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/insurance/peers/peer0.insurance:/etc/hyperledger/fabric
+      - peer0.insurance:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 7777:7777
+      - 9450:9450
+    networks:
+      - test
+
+  peer1.insurance:
+    container_name: peer1.insurance
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID=peer1.insurance
+      - CORE_PEER_ADDRESS=peer1.insurance:7787
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7787
+      - CORE_PEER_CHAINCODEADDRESS=peer1.insurance:7788
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7788
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.insurance:7787
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.insurance:7787
+      - CORE_PEER_LOCALMSPID=InsuranceMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.insurance:9451
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":peer1insurance
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+    volumes:
+      - ../organizations/peerOrganizations/insurance/peers/peer1.insurance:/etc/hyperledger/fabric
+      - peer1.insurance:/var/hyperledger/production
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 7787:7787
+      - 9451:9451
+    networks:
+      - test
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:latest
+    labels:
+      service: hyperledger-fabric
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      - FABRIC_LOGGING_SPEC=INFO
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+      - ../organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/organizations
+      - ../scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+    depends_on:
+      - peer0.hospital
+      - peer1.hospital
+      - peer0.patient
+      - peer1.patient
+      - peer0.pharmacy
+      - peer1.pharmacy
+      - peer0.insurance
+      - peer1.insurance
+    networks:
+      - test
+

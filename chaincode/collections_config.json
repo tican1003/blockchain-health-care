@@ -1,0 +1,59 @@
+[
+    {
+        "name": "patPvtCollection",
+        "policy": "OR('HospitalMSP.member', 'PatientMSP.member' )",
+        "requiredPeerCount": 1,
+        "maxPeerCount": 1,
+        "blockToLive": 1000000,
+        "memberOnlyRead": true,
+        "memberOnlyWrite": true
+    },
+    {
+        "name": "hospitalmspPrivateCollection",
+        "policy": "OR('HospitalMSP.member')",
+        "requiredPeerCount": 0,
+        "maxPeerCount": 3,
+        "blockToLive":3,
+        "memberOnlyRead": true,
+        "memberOnlyWrite": false,
+        "endorsementPolicy": {
+          "signaturePolicy": "OR('HospitalMSP.member')"
+        }
+      },
+    {
+        "name": "patientmspPrivateCollection",
+        "policy": "OR('PatientMSP.member')",
+        "requiredPeerCount": 0,
+        "maxPeerCount": 3,
+        "blockToLive":3,
+        "memberOnlyRead": true,
+        "memberOnlyWrite": false,
+        "endorsementPolicy": {
+          "signaturePolicy": "OR('PatientMSP.member')"
+        }
+      },
+    {
+        "name": "pharmacymspPrivateCollection",
+        "policy": "OR('PharmacyMSP.member')",
+        "requiredPeerCount": 0,
+        "maxPeerCount": 3,
+        "blockToLive":3,
+        "memberOnlyRead": true,
+        "memberOnlyWrite": false,
+        "endorsementPolicy": {
+          "signaturePolicy": "OR('PharmacyMSP.member')"
+        }
+      },
+    {
+        "name": "insurancemspPrivateCollection",
+        "policy": "OR('InsuranceMSP.member')",
+        "requiredPeerCount": 0,
+        "maxPeerCount": 3,
+        "blockToLive":3,
+        "memberOnlyRead": true,
+        "memberOnlyWrite": false,
+        "endorsementPolicy": {
+          "signaturePolicy": "OR('InsuranceMSP.member')"
+        }
+      }
+]
